@@ -39,20 +39,17 @@ jobs:
             ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
             ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
 
-      - name: Azure Login
-        uses: azure/login@v1
+      - uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure Container Apps
-        uses: azure/CLI@v1
-        with:
-          azcliversion: 2.62.0
-          inlineScript: |
-            az containerapp update \
-              --name pos-webapp \
-              --resource-group pos-rg \
-              --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+      - name: Deploy to ACA
+        run: |
+          az containerapp update \
+            --name pos-webapp \
+            --resource-group pos-rg \
+            --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }} \
+            --revision-suffix ${{ env.TAG }}
 
       - name: Show pushed tag
         run: echo "Deployed ➜ ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
