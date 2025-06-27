@@ -1,0 +1,44 @@
+name: Build & Push to ACR
+
+on:
+  # dispara al hacer push a la rama main
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_NAME: pos-app # <─ cambia si tu contenedor se llama distinto
+
+    steps:
+      # 1️⃣  Clona el repo
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2️⃣  Calcula un tag corto y único
+      - name: Set TAG
+        run: echo "TAG=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      # 3️⃣  Login al ACR
+      - name: Docker login to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USER }}
+          password: ${{ secrets.ACR_PASS }}
+
+      # 4️⃣  Build + Push
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+            ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+
+      # 5️⃣  Muestra la referencia resultante
+      - name: Show pushed tag
+        run: echo "Pushed ➜ ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
