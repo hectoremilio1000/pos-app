@@ -1,0 +1,14 @@
+# dependencias
+node_modules/
+
+# artefactos
+npm-debug.log*
+*.tar
+
+# entornos
+.DS_Store
+dist/
+build/
+
+# otros (si existe)
+.env
