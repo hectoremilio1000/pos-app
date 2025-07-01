@@ -9,6 +9,10 @@ on:
       - "pos-webapp/**"
       - ".github/workflows/build-pos-webapp.yml"
 
+concurrency:          # ⬅️  aquí
+  group: build-pos-webapp
+  cancel-in-progress: true
+
 env:
   IMAGE_NAME: pos-webapp # <─ cambia si tu contenedor se llama distinto
   ACR_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
