@@ -1,0 +1,68 @@
+name: Build & Deploy pos-landing
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pos-landing/**"
+      - ".github/workflows/build-pos-landing.yml"
+
+concurrency:
+  group: build-pos-landing
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: pos-landing
+  ACR_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+  RG_NAME: pos-rg
+  APP_NAME: pos-landing # nombre de la Container App en Azure
+  CONTEXT: ./pos-landing
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set TAG
+        run: echo "TAG=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Docker login to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USER }}
+          password: ${{ secrets.ACR_PASS }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build & push image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.CONTEXT }}
+          file: ${{ env.CONTEXT }}/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ env.ACR_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+            ${{ env.ACR_SERVER }}/${{ env.IMAGE_NAME }}:latest
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Container Apps
+        run: |
+          az containerapp update \
+            --name           ${{ env.APP_NAME }} \
+            --resource-group ${{ env.RG_NAME }} \
+            --image          ${{ env.ACR_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }} \
+            --revision-suffix ${{ env.TAG }}
+
+      - name: Show tag
+        run: echo "Deployed ➜ ${{ env.ACR_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
