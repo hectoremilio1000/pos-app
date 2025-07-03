@@ -1,7 +1,10 @@
 import env from '#start/env'
 import { defineConfig } from '@adonisjs/lucid'
 
-const ssl = env.get('DB_SSL', 'false') === 'true' ? { rejectUnauthorized: false } : false
+const ssl =
+  env.get('DB_SSL', 'false') === 'true'
+    ? { rejectUnauthorized: false } // TLS para Flexible Server
+    : false
 
 const dbConfig = defineConfig({
   connection: env.get('DB_CONNECTION', 'postgres') as 'postgres',
@@ -16,10 +19,7 @@ const dbConfig = defineConfig({
         password: env.get('DB_PASSWORD'),
         database: env.get('DB_DATABASE'),
         // ↓↓↓  sólo cuando DB_SSL === 'true'
-        ssl:
-          env.get('DB_SSL') === 'true'
-            ? { rejectUnauthorized: false } // Flexible Server usa CA de Azure
-            : false,
+        ssl,
       },
       migrations: {
         naturalSort: true,
