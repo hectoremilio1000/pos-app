@@ -1,6 +1,6 @@
 ########## Etapa 1: build ##########
 FROM node:20-alpine AS build
-WORKDIR /pos-auth
+WORKDIR /app
 
 # Copia package.json + package-lock.json
 COPY package*.json ./
@@ -14,7 +14,7 @@ RUN npm run build        # esto genera build/
 
 ########## Etapa 2: runtime ########
 FROM node:20-alpine
-WORKDIR /pos-auth
+WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=build /app/build ./build
