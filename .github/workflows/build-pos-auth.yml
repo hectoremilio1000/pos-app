@@ -1,0 +1,74 @@
+name: Build & Deploy pos-auth
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pos-auth/**"
+      - ".github/workflows/build-pos-auth.yml"
+
+concurrency:
+  group: build-pos-auth
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: pos-auth # Nombre del repositorio de imagen en ACR
+  ACR_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
+  RG_NAME: pos-rg # Reutiliza el mismo resource group
+  APP_NAME: pos-auth # Nombre de la Container App en Azure
+  CONTEXT: ./pos-auth # Raíz del microservicio Adonis
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set TAG
+        run: echo "TAG=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - name: Docker login to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.ACR_SERVER }}
+          username: ${{ secrets.ACR_USER }}
+          password: ${{ secrets.ACR_PASS }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      # (Opcional) cache para capas de node_modules si tu Dockerfile lo permite
+      # - uses: actions/cache@v4
+      #   with:
+      #     path: /tmp/.buildx-cache
+      #     key: ${{ runner.os }}-buildx-${{ env.IMAGE_NAME }}-${{ env.TAG }}
+
+      - name: Build & push image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.CONTEXT }}
+          file: ${{ env.CONTEXT }}/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ env.ACR_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}
+            ${{ env.ACR_SERVER }}/${{ env.IMAGE_NAME }}:latest
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Container Apps
+        run: |
+          az containerapp update \
+            --name           ${{ env.APP_NAME }} \
+            --resource-group ${{ env.RG_NAME }} \
+            --image          ${{ env.ACR_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }} \
+            --revision-suffix ${{ env.TAG }}
+
+      - name: Show tag
+        run: echo "Deployed ➜ ${{ env.ACR_SERVER }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
