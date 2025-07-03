@@ -21,3 +21,4 @@ build
 # entornos locales
 .env
 .env.*
+!.env.docker
