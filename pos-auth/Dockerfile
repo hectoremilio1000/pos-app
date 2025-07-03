@@ -1,6 +1,6 @@
 ########## Etapa 1: build ##########
 FROM node:20-alpine AS build
-WORKDIR /app
+WORKDIR /pos-auth
 
 # Copia package.json + package-lock.json
 COPY package*.json ./
@@ -14,13 +14,19 @@ RUN npm run build        # esto genera build/
 
 ########## Etapa 2: runtime ########
 FROM node:20-alpine
-WORKDIR /app
+WORKDIR /pos-auth
 ENV NODE_ENV=production
 
-# Solo copiamos artefactos y deps de producción
 COPY --from=build /app/build ./build
 COPY --from=build /app/package*.json ./
-RUN npm ci --omit=dev    # instala solo dependencias req. en prod
+
+# copiamos el env de producción mínima
+COPY .env.docker .env
+
+# Instalamos dependencias, pero DENTRO de build/
+RUN npm ci --omit=dev --prefix ./build
+
+# Ejecutamos el servidor compilado
+CMD ["node", "build/bin/server.js"]
 
 EXPOSE 3333
-CMD ["node", "build/server.js"]
