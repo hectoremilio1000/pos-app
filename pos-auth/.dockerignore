@@ -2,7 +2,7 @@
 node_modules
 npm-debug.log
 yarn-error.log
-pnpm-lock.yaml # (si tu build usa npm; quítala si usas pnpm)
+
 
 # control de versiones
 .git
