@@ -4,5 +4,13 @@
     "types": ["@adonisjs/auth/types"],
     "rootDir": "./",
     "outDir": "./build"
-  }
+  },
+  "include": ["./**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "build",
+    "tmp",
+    "tests", // 👈 añade
+    "bin/test.ts" // 👈 añade
+  ]
 }
