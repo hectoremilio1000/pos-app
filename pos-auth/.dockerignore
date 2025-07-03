@@ -1,0 +1,23 @@
+# archivos grandes o inútiles en producción
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-lock.yaml # (si tu build usa npm; quítala si usas pnpm)
+
+# control de versiones
+.git
+.gitignore
+
+# tests y docs
+tests
+coverage
+*.md
+
+# salidas de build que se regeneran
+dist
+build
+.tmp
+
+# entornos locales
+.env
+.env.*

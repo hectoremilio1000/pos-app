@@ -1,0 +1,8 @@
+{
+  "extends": "@adonisjs/tsconfig/tsconfig.app.json",
+  "compilerOptions": {
+    "types": ["@adonisjs/auth/types"],
+    "rootDir": "./",
+    "outDir": "./build"
+  }
+}
