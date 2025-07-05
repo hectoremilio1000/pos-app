@@ -6,36 +6,30 @@ import Restaurant from '#models/restaurant'
 import hash from '@adonisjs/core/services/hash'
 
 export default class AdminSeeder extends BaseSeeder {
-  public static developmentOnly = true // evita sembrar en prod; quítalo si lo necesitas
+  // quita la línea siguiente si también quieres sembrar en prod
+  public static developmentOnly = true
 
   public async run() {
-    /*
-     * 1. Nos aseguramos de que exista al menos un restaurante de demo.
-     *    Si ya tienes uno, cambia el slug o quita esta parte.
-     */
+    /* 1️⃣  Restaurante demo (usa name si no tienes slug) */
     const rest = await Restaurant.firstOrCreate(
-      { slug: 'demo-rest' },
+      { name: 'Demo Restaurant' },
       { name: 'Demo Restaurant', timezone: 'America/Mexico_City', currency: 'MXN' }
     )
 
-    /*
-     * 2. Rol “owner” (global) o por restaurante
-     */
+    /* 2️⃣  Rol “owner” (global) — sin restaurantId */
     const ownerRole = await Role.firstOrCreate(
-      { code: 'owner', restaurantId: null }, // null = rol global
+      { code: 'owner' },
       { name: 'Dueño', description: 'Owner global', level: 90 }
     )
 
-    /*
-     * 3. Usuario admin — email único
-     */
+    /* 3️⃣  Usuario admin */
     await User.firstOrCreate(
       { email: 'admin@example.com' },
       {
         fullName: 'Admin',
         email: 'admin@example.com',
-        passwordHash: await hash.make('secret123'), // cambia por contraseña fuerte
-        restaurantId: rest.id,
+        passwordHash: await hash.make('secret123'), // cambia después en prod
+        restaurantId: rest.id, // admin de ese restaurante
         roleId: ownerRole.id,
         status: 'active',
       }
