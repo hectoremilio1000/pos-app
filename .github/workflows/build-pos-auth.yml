@@ -1,3 +1,4 @@
+# /Users/hectoremilio/Proyectos/growthsuitecompleto/pos-app/.github/workflows/build-pos-auth.yml
 name: Build & Deploy pos-auth
 
 on:

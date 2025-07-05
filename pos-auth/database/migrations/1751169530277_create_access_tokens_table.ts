@@ -1,3 +1,4 @@
+// 1751169530277_create_access_tokens_table
 import { BaseSchema } from '@adonisjs/lucid/schema'
 
 export default class extends BaseSchema {

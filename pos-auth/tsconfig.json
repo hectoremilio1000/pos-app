@@ -1,16 +1,16 @@
 {
   "extends": "@adonisjs/tsconfig/tsconfig.app.json",
   "compilerOptions": {
-    "types": ["@adonisjs/auth/types"],
     "rootDir": "./",
-    "outDir": "./build"
+    "outDir": "./build",
+
+    /* alias & tipos adicionales */
+    "baseUrl": "./", // ← obligatorio
+    "paths": {
+      "#types/*": ["./app/Types/*"]
+    },
+    "types": ["@adonisjs/auth/types"]
   },
   "include": ["./**/*.ts"],
-  "exclude": [
-    "node_modules",
-    "build",
-    "tmp",
-    "tests", // 👈 añade
-    "bin/test.ts" // 👈 añade
-  ]
+  "exclude": ["node_modules", "build", "tmp", "tests", "bin/test.ts"]
 }
